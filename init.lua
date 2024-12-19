@@ -1,5 +1,7 @@
 digtron = {}
 
+digtron.S = minetest.get_translator("digtron")
+
 digtron.auto_controller_colorize = "#88000030"
 digtron.pusher_controller_colorize = "#00880030"
 digtron.soft_digger_colorize = "#88880030"
@@ -33,16 +35,15 @@ digtron.builder_on_place_items = {
 digtron.builder_on_place_prefixes = {
 	["farming:"] = true,
 	["farming_plus:"] = true,
-	["crops:"] = true, 
+	["crops:"] = true,
 }
 
 -- Finally, items belonging to group "digtron_on_place" will have their on_place methods called.
 
 local digtron_modpath = minetest.get_modpath( "digtron" )
 
-dofile( digtron_modpath .. "/class_fakeplayer.lua")
-
-digtron.fake_player = DigtronFakePlayer.create({x=0,y=0,z=0}, "fake_player") -- since we only need one fake player at a time and it doesn't retain useful state, create a global one and just update it as needed.
+-- since we only need one fake player at a time and it doesn't retain useful state, create a global one and just update it as needed.
+digtron.fake_player = fakelib.create_player()
 
 dofile( digtron_modpath .. "/config.lua" )
 dofile( digtron_modpath .. "/util.lua" )

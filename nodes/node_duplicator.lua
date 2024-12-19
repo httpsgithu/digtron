@@ -1,6 +1,7 @@
 -- internationalization boilerplate
-local MP = minetest.get_modpath(minetest.get_current_modname())
-local S, NS = dofile(MP.."/intllib.lua")
+local S = digtron.S
+-- local MP = minetest.get_modpath(minetest.get_current_modname())
+-- local S = dofile(MP.."/intllib.lua")
 
 local inventory_formspec_string =
 	"size[9,9.3]" ..
@@ -15,7 +16,7 @@ local inventory_formspec_string =
 	"listring[current_player;main]" ..
 	default.get_hotbar_bg(0,5.15)..
 	"button_exit[8,3.5;1,1;duplicate;"..S("Duplicate").."]" ..
-	"tooltip[duplicate;" .. S("Puts a copy of the adjacent Digtron into an empty crate\nlocated at the output side of the duplicator,\nusing components from the duplicator's inventory.") .. "]"
+	"tooltip[duplicate;" .. S("Puts a copy of the adjacent Digtron into an empty crate@nlocated at the output side of the duplicator,@nusing components from the duplicator's inventory.") .. "]"
 
 if minetest.get_modpath("doc") then
 	inventory_formspec_string = inventory_formspec_string ..
@@ -29,7 +30,8 @@ minetest.register_node("digtron:duplicator", {
     _doc_items_usagehelp = digtron.doc.duplicator_usagehelp,
 	groups = {cracky = 3,  oddly_breakable_by_hand=3},
 	sounds = digtron.metal_sounds,
-	tiles = {"digtron_plate.png^(digtron_axel_side.png^[transformR90)",
+	tiles = {
+		"digtron_plate.png^(digtron_axel_side.png^[transformR90)",
 		"digtron_plate.png^(digtron_axel_side.png^[transformR270)",
 		"digtron_plate.png^digtron_axel_side.png",
 		"digtron_plate.png^(digtron_axel_side.png^[transformR180)",
@@ -68,13 +70,17 @@ minetest.register_node("digtron:duplicator", {
 		inv:set_size("main", 8*4)
 	end,
 
-	can_dig = function(pos,player)
+	can_dig = function(pos)
 		local meta = minetest.get_meta(pos)
 		local inv = meta:get_inventory()
 		return inv:is_empty("main")
 	end,
 
-	allow_metadata_inventory_put = function(pos, listname, index, stack, player)
+	allow_metadata_inventory_put = function(pos, _, _, stack, player)
+		if digtron.check_protected_and_record(pos, player) then
+			return 0
+		end
+
 		if minetest.get_item_group(stack:get_name(), "digtron") > 0 then
 			return stack:get_count()
 		else
@@ -82,7 +88,11 @@ minetest.register_node("digtron:duplicator", {
 		end
 	end,
 
-	on_receive_fields = function(pos, formname, fields, sender)
+	allow_metadata_inventory_move = digtron.protected_allow_metadata_inventory_move,
+
+	allow_metadata_inventory_take = digtron.protected_allow_metadata_inventory_take,
+
+	on_receive_fields = function(pos, _, fields, sender)
 		local player_name = sender:get_player_name()
 		if fields.help then
 			minetest.after(0.5, doc.show_entry, player_name, "nodes", "digtron:duplicator", true)
@@ -113,7 +123,7 @@ minetest.register_node("digtron:duplicator", {
 				return
 			end
 
-			local layout = DigtronLayout.create(pos, sender)
+			local layout = digtron.DigtronLayout.create(pos, sender)
 
 			if layout.contains_protected_node then
 				minetest.sound_play("buzzer", {gain=0.5, pos=pos})
@@ -140,7 +150,7 @@ minetest.register_node("digtron:duplicator", {
 			local unsatisfied = {}
 			for name, count in pairs(required_count) do
 				if not inv:contains_item("main", ItemStack({name=name, count=count})) then
-					table.insert(unsatisfied, tostring(count) .. " " .. minetest.registered_nodes[name].description)
+					table.insert(unsatisfied, tostring(count) .. " " .. digtron.get_nodedef(name).description)
 				end
 			end
 			if #unsatisfied > 0 then

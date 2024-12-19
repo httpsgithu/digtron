@@ -1,6 +1,7 @@
 -- internationalization boilerplate
-local MP = minetest.get_modpath(minetest.get_current_modname())
-local S, NS = dofile(MP.."/intllib.lua")
+local S = digtron.S
+-- local MP = minetest.get_modpath(minetest.get_current_modname())
+-- local S = dofile(MP.."/intllib.lua")
 
 minetest.register_craftitem("digtron:digtron_core", {
 	description = S("Digtron Core"),
@@ -120,7 +121,7 @@ if minetest.get_modpath("technic") then
 				{"","default:steel_ingot",""}
 				}
 	})
-	
+
 	minetest.register_craft({
 		output = "digtron:power_connector",
 		recipe = {
